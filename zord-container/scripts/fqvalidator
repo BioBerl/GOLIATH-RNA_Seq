@@ -1,0 +1,36 @@
+#!/usr/bin/awk -f
+
+function error(line, msg) 
+{
+	printf("Error validating file at line %d: %s\n", line, msg) > "/dev/stderr"
+	status=1
+	exit 1
+}
+
+(NR%4)==1 {    
+	if ($1 !~/^@/) error(NR, "Expected a '@'")
+}
+
+(NR%4)==2 {
+	if ($1 !~ /[ATCGUNatcgun]+/) error(NR, "Expected only ATCGUN characters.")
+	seqlen=length($1)
+}
+
+(NR%4)==3 {
+	if ($1 !~/^\+/) error(NR,"Expected a '+' sign.")
+}
+
+(NR%4)==0 {
+	if ($1 !~/[!"#$%&'()*+,-./0123456789\:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~]/) error(NR, "Expected only quality characters.")
+	if(seqlen != length($1)) error(NR,"sequence length does not match quality length.")
+}
+
+END {
+	if (status == 1) exit 1
+	if((NR%4) != 0)
+	{
+		printf("Error validating file, file is truncated. \n")
+		exit 1
+	}
+}
+

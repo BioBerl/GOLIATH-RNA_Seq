@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+#find depth -- absolute path/abundance
+echo "input path to abundance.h5, path to tx2gene and output file endname."
+read file
+read tx2
+read out
+
+main(){
+
+	if [ $file == '' ] || [ $tx2 == '' ] || [ $out == '' ]; then
+		echo "missing argument"
+		exit 1
+	fi
+
+
+	get_tpm
+}
+
+
+get_tpm(){
+		Rscript /home/users/dberl/projects_current/VER01/scripts/RBMOD.R \
+			-a           $file \
+			-t	     $tx2  \
+			-o	     genes${out}.tsv  \
+		
+}
+main

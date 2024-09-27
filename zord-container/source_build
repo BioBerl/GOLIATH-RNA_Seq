@@ -1,0 +1,3 @@
+#docker build --no-cache --force-rm --rm -t dberl .
+rsync -avz --progress ../VER01/scripts .
+docker build --force-rm --rm -t dberl-zord .

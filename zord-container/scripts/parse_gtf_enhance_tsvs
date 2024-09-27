@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+ANNOT_GTF=$1
+LNC_GTF=$2
+
+
+
+# generates transcript type files ... 
+#for GENES
+#grep "protein_coding" $ANNOT_GTF | awk 'BEGIN{print "GENEID""\t""gene_type"} {if($3=="gene") print$10"\t""protein-coding"}' | sed -e "s/\"//g" -e "s/\;//g"  >gene_type
+
+#awk '{if($3=="gene") print$10"\t""long-nc-RNA"}' $LNC_GTF | sed -e "s/\"//g" -e "s/\;//g"  >> gene_type
+
+
+#for TRANSCRIPTS
+grep "protein_coding" $ANNOT_GTF | awk -F "[\t\"]" 'BEGIN{print "TXID""\t""tx_type"} {if($3=="transcript") print$12"\t""protein-coding"}' | sed -e "s/\"//g" -e "s/\;//g"  > transcript_type
+
+awk ' -F "[\t\"]" {if($3=="transcript") print$12"\t""long-nc-RNA"}' $LNC_GTF | sed -e "s/\"//g" -e "s/\;//g"  >> transcript_type
+
+
+
+
+
+

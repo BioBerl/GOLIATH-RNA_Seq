@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+echo "input abundance.tsv path  and output file endname."
+read abundance
+read out
+echo $abundance $out
+if [ $abundance == '' ]  ||  [ $out == '' ]; then
+	echo "missing argument"
+	exit 1
+fi   
+
+
+echo -e "TXID\ttpm" > transcripts${out}.tsv
+awk -F "[\t|]"  'NR>1  {print $1"\t"$NF}' "$abundance" >> transcripts${out}.tsv
+
+
