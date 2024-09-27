@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# File: kauto.sh
+
+FILE=$1
+#INDEX="/home/users/dberl/projects_current/VER01/gen29.idx"
+OUT=$2
+#OUTPUT="/home/users/dberl/projects_current/VER01/$OUT"
+SD=$(zcat $FILE | awk 'NR%4==2 {x+=length($0);y+=length($0)^2}END{print sqrt(y/NR - (x/NR)^2)}')
+L=$(zcat $FILE | awk 'NR%4==2 {x+=length($0)}END{print x/(NR/4)}')
+
+
+kallisto quant -i $INDEX -o $OUT --single -l $L -s $SD $FILE
+
+
+
+
+
+
+

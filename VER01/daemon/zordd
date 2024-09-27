@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+
+# Bash pragmas
+#parte do pragmas: alteram o comportamento do interpretador frente as seguintes situacoes, set -o seta as opcoes:
+# errexit: qualquer erro que acontecer, sai.
+# pipefail: se der algum piping error, sai.
+# nounset: erro por uso de variavel nao declarada previamente.
+# allexport: exporta do parent, para os childs. 
+set -o errexit     
+set -o pipefail
+set -o nounset
+set -o allexport
+
+# Our name
+# O programa basename vai retornar a string correspondente a porcao de texto depois da ultima / apenas...
+ZORD_NAME=$(basename "$0")
+
+# Our version
+ZORD_VERSION="ver0.1"
+
+# It may be a path list of configurations
+ZORD_CFG_PATH="/home/users/dberl/projects_current/VER01/etc"
+
+# Configuration file to look for
+ZORD_CFG_FILE="zord.cfg"
+
+# Set path to find zord scripts
+PATH="/home/users/dberl/projects_current/VER01/scripts:$PATH"
+
+
+# o que eh isso: funcoes para 
+log () {
+	local priority=$1; shift
+	logger -t "[$ZORD_NAME]" -p "daemon.$priority" -s "$@"
+}
+#info eh uma documentacao do que acontece no codigo.. 
+info () {
+	log info "$@"
+}
+
+warn () {
+	log warning "$@"
+}
+
+err () {
+	log err "$@"
+	exit 1
+}
+
+
+loop () {
+	
+	# -q e -m servem pra fazer o inotify rodar intermitentemente e sem printar nada na tela. %w %f %e sao pra printar na tela o nome do arquivo analisado 
+	#o pipe direciona a saida padrao pra outro lugar, nesse caso , ao inves de imprimira na tela, vai pra dentro de um while, o read le  entao essas variavis e joga seus valores em outrs:
+	#  %w ---> path 
+	#  %f ---> event .. nome do arquivo
+	#  %e ---> evento dividido entre acao e detalhe( se for pasta, $detail=="ISDIR" 
+	echo "inotifywait -q -r -m \"$ZORD_WORK_DIR\" --format '%w %f %e' -e create -e moved_to |"
+	inotifywait -q -r -m "$ZORD_WORK_DIR" --format '%w %f %e' -e create -e moved_to |
+		while read path file action detail; do
+			if [[ -f "$path/$file" && "$file" == JOB ]]; then
+				info "Event '$file' appeared at '$path' via '$action'"
+				ver0.1.sh "$path" &
+			fi
+		done
+		# pra q q serve esse comando aq embaixo ?
+		#done | xargs -n 1 -P $ZORD_MAX_QUEUE -I '{}' bash -c 'run "$@"' _ '{}'
+}
+
+check_programs () {
+	# Check that necessary programs are available
+	# verifica $? e faz || essa parte eh muito boa pra fazer bool decente em unix, aprenda! 
+	which kallisto > /dev/null 2>&1 || err "Unable to find 'kallisto' executable"
+	which xargs > /dev/null 2>&1 || err "Unable to find 'xargs' executable"
+	which inotifywait > /dev/null 2>&1 || err "Unable to find 'inotifywait' executable"
+	which zip > /dev/null 2>&1 || err "Unable to find 'zip' executable"
+	which md5sum > /dev/null 2>&1 || err "Unable to find 'md5sum' executable"
+}
+
+
+# DAVID ASKS pq precisa de cleanup ?
+
+cleanup () {
+	# Clean the mess
+	echo "HOLDPLACE"
+}
+
+exit_on_signal () {
+	local sig="$1"; shift
+	info "Caught signal SIG$(kill -l $sig)"
+	exit "$sig"
+}
+
+main () {
+	# It's time!!!
+	info "Initiating $ZORD_NAME Version $ZORD_VERSION"
+
+	# Trap signals and garantee that the cleanup function
+	# runs before exit
+	trap "cleanup" EXIT
+# DAVID ASKS o que esse for faz ? verifica tipo de exit error e kill tasks ...?
+	for sig in 1 2 3 6 9 15; do
+		trap "exit_on_signal $sig" "$sig"
+	done
+
+	# Import environment
+	info "Importing environment at '$ZORD_CFG_PATH/$ZORD_CFG_FILE'"
+	if ! source "$ZORD_CFG_PATH/$ZORD_CFG_FILE"; then
+		err "Failed to load env at '$ZORD_CFG_PATH/$ZORD_CFG_FILE'"
+	fi
+
+	# Check programs!
+	info "Check if necessary programs are available"
+	check_programs
+
+	# Just in case, create the working
+	# directory where the daemon will
+	# look for new folders to process
+	info "Create '$ZORD_WORK_DIR' if not exists"
+	mkdir -p "$ZORD_WORK_DIR"
+
+	# Run looping at the working directory
+	info "Working at '$ZORD_WORK_DIR'"
+	loop
+}
+
+# Let's go!
+main

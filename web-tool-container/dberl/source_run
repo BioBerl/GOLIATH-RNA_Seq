@@ -1,0 +1,1 @@
+docker run -dit --name dberl -p 8080:80 dberl

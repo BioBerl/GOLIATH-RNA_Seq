@@ -1,0 +1,15 @@
+# fastq1 filename
+FASTQ1=/home/scratch60/1horin/ER1.fastq
+
+# fastq2 filename if any
+FASTQ2=/home/scratch60/1horin/ER2.fastq
+
+# kallisto single or paired
+TYPE=paired
+
+EMAIL=""
+
+OUTNAME="out_kallisto_tst"
+
+#junto com o arquivo , eu quero gerar uma string DATE com o comando `date +"%d-%m-%y"` pra poder rodar um expiration nele.
+# foi feito no ver01.sh mas da pra fazer pelas JOBs mesmo ...

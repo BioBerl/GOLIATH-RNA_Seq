@@ -1,0 +1,2 @@
+#docker run -dit --name dberl --rm -v /home/users/dtohara/projects_current/DockerFiles/dberl/dberl:/var/www/pagina/ -p 8080:80 dberl
+docker run -dit --name dberl --rm -v `pwd`/dberl:/var/www/pagina/ -v `pwd`/../VER01/WD:/files/ -p 8080:80 dberl
